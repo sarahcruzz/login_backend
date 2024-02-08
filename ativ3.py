@@ -36,10 +36,10 @@ class MyMandler(SimpleHTTPRequestHandler):
             try:
                 with open(os.path.join(os.getcwd(), 'login.html'), 'r') as login_file:
                     content = login_file.read()
-                self.send_response(200)
-                self.send_header("content-type","text/html")
-                self.end_headers()
-                self.wfile.write(content.encode('utf-8'))          
+                    self.send_response(200)
+                    self.send_header("content-type","text/html")
+                    self.end_headers()
+                    self.wfile.write(content.encode('utf-8'))          
         # Caso dê erro
             except FileNotFoundError:
                 pass
@@ -82,11 +82,11 @@ class MyMandler(SimpleHTTPRequestHandler):
                     senha = form_data.get('senha', [''])[0]
                     file.write(f"{login};{senha}\n")
 
-            self.send_response(200)
-            self.send_header('Content-type', 'text/html; chrset=utf-8')
-            self.end_headers()
-            mensagem = "Dados recebidos e armazenados com sucesso!"
-            self.wfile.write(mensagem.encode('utf-8'))    
+                    self.send_response(200)
+                    self.send_header('Content-type', 'text/html; chrset=utf-8')
+                    self.end_headers()
+                    mensagem = "Dados recebidos e armazenados com sucesso!"
+                    self.wfile.write(mensagem.encode('utf-8'))    
 
 
             with open('dados_login.txt', 'a') as file:
@@ -94,12 +94,12 @@ class MyMandler(SimpleHTTPRequestHandler):
                 senha = form_data.get('senha',[''])[0]
                 file.write(f"{login}, {senha}\n")
  
-            self.send_response(200)
-            self.send_header("Content-type", "text/html")
-            self.end_headers()
+                self.send_response(200)
+                self.send_header("Content-type", "text/html")
+                self.end_headers()
             with open(os.path.join(os.getcwd(), 'sucesso.html'), 'r') as sucesso_file:
-                    content = sucesso_file.read()
-            self.wfile.write(content.encode('utf-8'))
+                content = sucesso_file.read()
+                self.wfile.write(content.encode('utf-8'))
         else:
             # Se não for a rota "/enviar_login", continua com o comportamento padrão
             super(MyMandler,self).do_POST()
