@@ -1,0 +1,92 @@
+/* Estilização da página de login */
+
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800;900&display=swap');
+
+body {
+    font-family: 'Rubik', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #5a189a;
+    width: 100%;
+    height: 100%;
+}
+
+#tela-login {
+    background-color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    padding: 40px;
+    border-radius: 10px;
+}
+
+.tela-login h1{
+    display: flex;
+    justify-content: center;
+}
+
+input{
+    width: 350px;
+    height: 30px;
+    border-radius: 6px;
+    display: flex;
+    margin: 10px 10px 10px 0;   
+    border-color:blueviolet;
+    padding-left: 40px;
+}
+
+#item{
+    background-color: #5a189a;
+    color: #fff;
+    border-radius: 3px;
+    margin-left: 324px;
+}
+
+
+
+.fa-solid{
+    transform: translate(70%, 240%);
+}
+
+/* Fim da estilização da página de login */
+
+
+/* Estilização da página index.html */
+#menu-superior{
+    display: flex;
+    justify-content: center;
+    font-size: 35px;
+    background-color: black;    
+    color: white;
+}
+
+/*
+.tabela-info, th, td{
+    border-collapse: collapse; 
+    
+    padding: 20px 20px 0 20px;
+    text-align: left;   
+    color: white;
+}
+
+th{
+    background-color: lightgray;
+}
+
+#link-paginas{
+    color: rgb(215, 149, 253);
+}
+/*
+
+
+/* Fim da estilização da página index.html */
+
+
+#tabela-info{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    
+}
+
