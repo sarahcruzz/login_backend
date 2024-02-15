@@ -1,7 +1,7 @@
 import os
 from http.server import SimpleHTTPRequestHandler
 import socketserver
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, urlparse
 
 # Esta versão manin8 verifica se usuário já existe e se senha informada está correta
 # Em caso de novo usuario, ou seja, um login que não está na base, ele é cadastrado na base e recebe uma mensgaem de boas vinadas
@@ -55,6 +55,38 @@ class MyHandler(SimpleHTTPRequestHandler):
             # Envia o conteúdo modificado para o cliente
             self.wfile.write(content.encode('utf-8'))
 
+        elif self.path.startswith('/cadastro'):
+            # Extraindo os parâmetros da URL
+
+            query_params = parse_qs(urlparse(self.path).query)
+            login = query_params.get('login', [''])[0]
+            senha = query_params.get('senha', [''])[0]
+
+            # Mensagem de boas-vindas
+
+            welcome_message = f"Olá {login}, seja bem-vindo! Percebemos que você é novo por aqui. Complete seu cadastro."
+
+            # Responde ao cliente com página de cadastro
+            self.send_response(200)
+            self.send_header("Content-type", "text/html; charset=utf-8")
+            self.end_headers()
+
+            with open(os.path.join(os.getcwd(), 'cadastro.html'), 'r', encoding='utf-8') as cadastro_file:
+                content = cadastro_file.read()
+
+            # Substitui os marcadores de posição pelos valores correspondentes
+
+            content = content.replace('{login}', login)
+            content = content.replace('{senha}', senha)
+            content = content.replace('{welcome_message}', welcome_message)
+
+            # Envia o conteúdo modificado para o cliente 
+
+            self.wfile.write(content.encode('utf-8'))
+
+            return # Adicionando um return para evitar a execução do restante do código
+        
+
         else:
             # Se não for a rota "/login", continua com o comportamento padrão
             super().do_GET()
@@ -64,14 +96,22 @@ class MyHandler(SimpleHTTPRequestHandler):
 
         with open('dados_login.txt', 'r', encoding='utf-8') as file:
             for line in file:
-                stored_login, stored_senha = line.strip().split(', ')
+                if line.strip():
+                    stored_login, stored_senha = line.strip().split(';')
 
                 if login == stored_login:
                     print ("cheguei aqui significando que localizei o login informado")
                     print ("senha: " + senha)
-                    print(" senha_armazenada: " + senha)
+                    print("senha_armazenada: " + senha)
                     return senha == stored_senha
         return False
+    
+    def remover_ultima_linha(self, arquivo):
+        print("Vou excluir a última linha")
+        with open(arquivo, 'r', encoding='utf-8') as file:
+            lines = file.readlines()
+        with open(arquivo, 'w', encoding='utf-8') as file:
+            file.writelines(lines[:-1])
 
     def do_POST(self):
         # Verifica se a rota é "/enviar_login"
@@ -114,14 +154,16 @@ class MyHandler(SimpleHTTPRequestHandler):
                 else:
                     # Adiciona o novo usuário ao arquivo
                     with open('dados_login.txt', 'a', encoding='utf-8') as file:
-                        file.write(f"{login};{senha}\n")
+                        file.write(f"{login};{senha}\n" + "none" + "\n")
 
                     # Responde ao cliente com a mensagem de boas-vindas
-                    self.send_response(200)
-                    self.send_header("Content-type", "text/html; charset=utf-8")
+                    self.send_response(302)
+                    self.send_header("Location", f'/cadastro?login={login}&senha={senha}')
                     self.end_headers()
                     mensagem = f"Olá {login}, seja bem-vindo! Percebemos que você é novo por aqui."
                     self.wfile.write(mensagem.encode('utf-8'))
+
+                    return
         else:
             # Se não for a rota "/enviar_login", continua com o comportamento padrão
             super(MyHandler, self).do_POST()
