@@ -2,10 +2,7 @@ import os
 from http.server import SimpleHTTPRequestHandler
 import socketserver
 from urllib.parse import parse_qs, urlparse
-
-# Esta versão manin8 verifica se usuário já existe e se senha informada está correta
-# Em caso de novo usuario, ou seja, um login que não está na base, ele é cadastrado na base e recebe uma mensgaem de boas vinadas
-
+import hashlib
 
 class MyHandler(SimpleHTTPRequestHandler):
     def list_directory(self, path):
@@ -86,7 +83,19 @@ class MyHandler(SimpleHTTPRequestHandler):
 
             return # Adicionando um return para evitar a execução do restante do código
         
+        elif self.path.startswith('/tela_logada'):
+    
+            self.send_response(200)
+            self.send_header("Content-type", "text/html; charset=utf-8")
+            self.end_headers()
 
+            with open(os.path.join(os.getcwd(), 'sucesso.html'), 'r', encoding='utf-8') as file:
+                content = file.read()
+                
+                self.wfile.write(content.encode('utf-8'))
+            
+            return
+        
         else:
             # Se não for a rota "/login", continua com o comportamento padrão
             super().do_GET()
@@ -97,15 +106,21 @@ class MyHandler(SimpleHTTPRequestHandler):
         with open('dados_login.txt', 'r', encoding='utf-8') as file:
             for line in file:
                 if line.strip():
-                    stored_login, stored_senha = line.strip().split(';')
+                    stored_login, stored_senha_hash, stored_name = line.strip().split(';')
 
                 if login == stored_login:
                     print ("cheguei aqui significando que localizei o login informado")
                     print ("senha: " + senha)
                     print("senha_armazenada: " + senha)
-                    return senha == stored_senha
+                    print(stored_senha_hash)
+                    return senha == stored_senha_hash
         return False
     
+    def adicionar_usuario(self, login, senha, nome):
+        senha_hash = hashlib.sha256(senha.encode('UTF-8')).hexdigest()
+        with open('dados_login.txt', 'a', encoding='utf-8') as file:
+            file.write(f'{login};{senha_hash};{nome}\n')
+
     def remover_ultima_linha(self, arquivo):
         print("Vou excluir a última linha")
         with open(arquivo, 'r', encoding='utf-8') as file:
@@ -145,7 +160,7 @@ class MyHandler(SimpleHTTPRequestHandler):
                 
             else:
                 # Verifica se o login já existe no arquivo
-                if any(line.startswith(f"{login}, ") for line in open('dados_login.txt', 'r', encoding='utf-8')):
+                if any(line.startswith(f"{login};") for line in open('dados_login.txt', 'r', encoding='utf-8')):
                     # Redireciona o cliente para a rota "/login_failed"
                     self.send_response(302)
                     self.send_header('Location', '/login_failed')
@@ -154,16 +169,63 @@ class MyHandler(SimpleHTTPRequestHandler):
                 else:
                     # Adiciona o novo usuário ao arquivo
                     with open('dados_login.txt', 'a', encoding='utf-8') as file:
-                        file.write(f"{login};{senha}\n" + "none" + "\n")
+                        file.write(f"{login};{senha};" + "none" + "\n")
 
-                    # Responde ao cliente com a mensagem de boas-vindas
+                    # Redireciona o cliente para a rota "/cadastro" com os dados de login e senha
+                    self.adicionar_usuario(login, senha, nome='None')
                     self.send_response(302)
-                    self.send_header("Location", f'/cadastro?login={login}&senha={senha}')
+                    self.send_header('Location', f'/cadastro?login={login}&senha={senha}')
                     self.end_headers()
-                    mensagem = f"Olá {login}, seja bem-vindo! Percebemos que você é novo por aqui."
-                    self.wfile.write(mensagem.encode('utf-8'))
 
                     return
+        
+        elif self.path.startswith('/confirmar_cadastro'):
+            # Obtém o comprimento do corpo da requisição
+            content_length = int(self.headers['Content-Length'])
+            # Lê o corpo da requisição
+            body = self.rfile.read(content_length).decode('utf-8')
+            # Parseia os dados do formulário
+            form_data = parse_qs(body, keep_blank_values=True)
+
+            # query_params = parse_qs(urlparse(self.path).query)
+            login = form_data.get('email', [''])[0]
+            senha = form_data.get('senha', [''])[0]
+            nome = form_data.get('nome', [''])[0]
+
+            senha_hash = hashlib.sha256(senha.encode('utf-8')).hexdigest()
+
+            print("Nome:" + nome)
+
+            # Verifica se o usuário já existe
+            if self.usuario_existente(login, senha):
+
+                # Atualiza o arquivo com o nome, se a senha estiver correta
+                with open('dados_login.txt', 'r', encoding='utf-8') as file:
+                    lines = file.readlines()
+                
+                with open('dados_login.txt', 'r', encoding='utf-8') as file:
+                    for line in lines:
+                        stored_login, stored_senha = line.strip().split(';')
+                        if login == stored_login and senha_hash == stored_senha:
+                            line = f"{login};{senha};{nome}\n"
+                        
+                        file.write(line)
+
+                # Redireciona o cliente para onde sejar após a confirmação
+                self.send_response(302)
+                self.send_header("Content-type", "text/html; charset=utf-8")
+                self.end_headers()
+                self.wfile.write("Registro Recebido com Sucesso!!!".encode('utf-8'))
+
+            else:
+
+                # Se o usuário não existe ou a senha está incorreta, redireciona para outra página
+                self.remover_ultima_linha('dados_login.txt')
+                self.send_response(302)
+                self.send_header("Content-type", "text/html; charset=utf-8")
+                self.end_headers()
+                self.wfile.write("A senha não confere. Retome o procedimento!".encode('utf-8'))           
+
         else:
             # Se não for a rota "/enviar_login", continua com o comportamento padrão
             super(MyHandler, self).do_POST()
