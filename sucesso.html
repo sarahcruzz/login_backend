@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
-<body>
+<body id="body">
     <nav id="superior">
         <p>Nome do Professor</p>
         <button id="sair"> Sair </button>
@@ -18,11 +18,49 @@
 
     <div id="cadastrar-turma">
         <input type="text" id="turma" name="turma" placeholder="Digite o nome da turma">
-        <button type="submit"> Cadastrar turma</button>
+        <input type="text" name="descricao" id="descricao" placeholder="Digite a descrição da turma">
+        <button type="submit" id="botao-cadastro"> Cadastrar turma</button>
     </div>
 
-    <table>
+    <table id="table-turmas">
+        <tr>
+            <td colspan="3"> Turmas</td>
+        </tr>
+
+        <tr>
+            <td>Número</td>
+            <td>Nome</td>
+            <td>Ação</td>
+        </tr>
+
+        <tr>
+            <td> 1 </td>
+            <td> Desenvolvimento de Sistemas A01</td>
+            <td>
+                <button id="botao-excluir"> Excluir </button> 
+                <button id="botao-visualizar"> Visualizar </button>
+            </td>
+        </tr>
+
         
+        <tr>
+            <td> 2 </td>
+            <td> Desenvolvimento de Sistemas A03</td>
+            <td>
+                <button id="botao-excluir"> Excluir </button> 
+                <button id="botao-visualizar"> Visualizar </button>
+            </td>
+        </tr>
+
+        
+        <tr>
+            <td> 3 </td>
+            <td> Desenvolvimento de Sistemas A04</td>
+            <td>
+                <button id="botao-excluir"> Excluir </button> 
+                <button id="botao-visualizar"> Visualizar </button>
+            </td>
+        </tr>
     </table>
 
     

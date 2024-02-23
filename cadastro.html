@@ -18,15 +18,15 @@
             <!-- Mensagem de erro será inserida aqui -->
         </div>
         <h1> Register </h1>
-        <form action="\cadastro" method="post" class="form-login">
+        <form action="/confirmar_cadastro" method="post" class="form-login">
             <i class="fa-solid fa-user"></i>
             <input type="text" id="nome" name="nome" placeholder="name" required>
 
             <i class="fa-solid fa-user"></i>
-            <input type="email" id="email" name="email" placeholder="username" required>
+            <input type="email" id="email" name="email" placeholder="username" value="{login}" required>
 
             <i class="fa-solid fa-key"></i>
-            <input type="password" id="senha" name="senha" placeholder="confirm your password" required>
+            <input type="password" id="senha" name="senha" placeholder="confirm your password" value="{senha}" required>
             <button id="item" type="submit">SUBMIT</button>
         </form>
         

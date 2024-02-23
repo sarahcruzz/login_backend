@@ -126,7 +126,7 @@ class MyHandler(SimpleHTTPRequestHandler):
     
     def remover_ultima_linha(self, arquivo):
         print('Vou excluir a última linha')
-        with open(arquivo, 'r', encoding='urf-8') as file:
+        with open(arquivo, 'r', encoding='utf-8') as file:
             lines =file.readlines()
         with open (arquivo, 'w', encoding='utf-8') as file:
             file.writelines(lines[:-1])
@@ -179,6 +179,7 @@ class MyHandler(SimpleHTTPRequestHandler):
                         # file.write(f'{login};{senha};' + 'none' + '\n')
 
                         #redirecionando o cliente para a rota /cadastro com os dados de login e senha 
+
                         self.adicionar_usuario(login, senha, nome='None')
                         self.send_response(302)
                         self.send_header('Location', f'/cadastro?login={login}&senha={senha}')
@@ -193,54 +194,53 @@ class MyHandler(SimpleHTTPRequestHandler):
                     # self.send_header("Content-type", "text/html; charset=utf-8")
                     # self.end_headers()
                     # self.wfile.write(content.encode('utf-8')) # escreve o conteudo da página
+                
         elif self.path.startswith('/confirmar_cadastro'):
+            content_length = int(self.headers['Content-Length'])
 
-            content_length= int(self.headers['Content-Length'])
             body = self.rfile.read(content_length).decode('utf-8')
-            form_data=parse_qs(body, keep_blank_values=True)
 
-            login = form_data.get('login', [''])[0]
+            form_data = parse_qs(body, keep_blank_values=True)
+
+            login = form_data.get('email', [''])[0]
             senha = form_data.get('senha', [''])[0]
             nome = form_data.get('nome', [''])[0]
-
+            
             senha_hash = hashlib.sha256(senha.encode('UTF-8')).hexdigest()
-            print('nome: ' + nome)
 
             if self.usuario_existente(login, senha):
-                with open ('dados_login.txt', 'r', encoding='utf-8') as file:
+
+                with open('dados_login.txt', 'r', encoding='utf-8') as file:
                     lines = file.readlines()
                 
-                with open ('dados_login.txt', 'w', encoding='utf-8') as file:
+                with open('dados_login.txt', 'w', encoding='utf-8') as file:
+
                     for line in lines:
-                        stored_login, stored_senha, stored_nome = line.strip().split(';')
+                        stored_login, stored_senha, stored_name = line.strip().split(';')
+
+                        print(stored_login, stored_name, stored_senha)
+
                         if login == stored_login and senha_hash == stored_senha:
-                            line = f'{login};{senha_hash};{nome}\n'
+                            line = f"{login};{senha_hash};{nome}\n"
+                        
                         file.write(line)
+                        
+                        self.send_response(302)
+                        self.send_header('Location', '/')
+                        self.end_headers()
+                    
+                    else:
 
-                self.send_response(302)
-                self.send_header('Content-type', 'text/html; charset=utf-8')
-                self.end_headers()
-                
+                        self.send_response(302)
+                        self.send_header('Content-type', 'text/html; charset=utf-8')
+                        self.end_headers()
+                        self.wfile.write('A senha não confere. Retome o procedimento!'.encode('utf-8'))
 
-                with open(os.path.join(os.getcwd(), 'cadastro_confirmado.html'), 'r', encoding='utf-8') as resposta_file:
-                  content = resposta_file.read()
-
-                  escrita = 'Dados Recebidos com Sucesso!'
-                  content = content.replace('<!--Mensagem aqui-->', 
-                                           f'<div class="resposta-usuario">{escrita}</div>' )
-                  
-                  self.wfile.write(content.encode('utf-8')) 
-            
-
-            else:
-
-                self.remover_ultima_linha('dados_login.txt')
-                self.send_response(302)
-                self.send_header('Content-type', 'text/html; charset=utf-8')
-                self.end_headers()
-                self.wfile.write('A senha não confere. Retome o procedimento!'.encode('utf-8'))
+                        return
         else:
-            #Se não for a rota definifa, conrinua com o comportamento padrão
+
+            # Se não for a rota definida, conrinua com o comportamento padrão
+
             super(MyHandler, self).do_POST()
 
 endereco_ip = "0.0.0.0"

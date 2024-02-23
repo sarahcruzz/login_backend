@@ -91,16 +91,74 @@ th{
 }
 
 /* Início da estilização da página de cadastro das turmas: sucesso.html */
+
+#body{
+    background-color: #fff
+}
+
 #superior{
     display: flex;
     width: 100%;
     justify-content: space-between;
+    background-color: #5a189a;
+    color: #fff;
+    font-size: 18px;
 }
 
 #superior p, #sair{
-    margin: 30px 20px 40px 20px;
+    margin: 20px 20px 20px 20px;
 }
 
+#sair{
+    width: 75px;
+    height: 35px;
+    font-size: 18px;
+    border-radius: 6px;
+}
 
+#cadastrar-turma{
+    display: flex;
+    justify-content: center;
+    gap: 70px;
+    margin: 60px;
+
+}
+
+#botao-cadastro{
+    width: 180px;
+    height: 40px;
+    border-radius: 6px;
+    font-size: 18px;
+    background-color: rgb(0, 255, 0);
+}
+
+#turma, #descricao{
+    width: 300px;
+    border-radius: 6px;
+}
+
+#table-turmas {
+    border-collapse: collapse;
+    display: flex;
+    justify-content: center;
+}
+
+#table-turmas td {
+    padding: 8px; /* Adicione o espaçamento desejado aqui */
+    border: 1px solid #dddddd;
+    text-align: center;
+    width: 300px;
+}
+
+#botao-excluir{
+    background-color: #ff000f;
+    color: #fff;
+    border-radius: 3px;
+}
+
+#botao-visualizar{
+    background-color: rgb(0, 255, 0);
+    border-radius: 3px;
+}
 /* Fim da estilização da página de cadastro das turmas: sucesso.html */
 
