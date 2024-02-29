@@ -38,7 +38,23 @@ class MyHandler(SimpleHTTPRequestHandler):
 
         return super().list_directory(path)
     
+    def adicionar_turma(self, turma, descricao):
+        print("Ad turma")
+        print(turma)
+        print(descricao)
 
+        with open('cad_turma.txt', 'a', encoding='UTF-8') as turma:
+            turma.write(f'{turma};{descricao}\n')
+
+    def turma_existente(self, turma, descricao):
+        with open('cad_turma.txt', 'r', encoding='utf-8') as file_turma:
+            for line in file_turma:
+                if line.strip():
+                    stored_codigo, stored_descricao = line.strip().split(';')
+                    if turma == stored_codigo:
+                        print("Turma localizada")
+                        return turma == stored_codigo
+        return False
     
     def do_GET(self):
         if self.path == '/login':
@@ -96,6 +112,16 @@ class MyHandler(SimpleHTTPRequestHandler):
                 self.wfile.write(content.encode('utf-8'))
 
                 return     
+        elif self.path == '/cad_turma':
+            try:
+                with open(os.path.join(os.getcwd(), 'turma.html'), 'r', encoding='utf-8') as codTurma:
+                    content = codTurma.read() 
+                self.send_response(200)
+                self.send_header("Content-type", "text/html")
+                self.end_headers()
+                self.wfile.write(content.encode('utf-8'))
+            except FileNotFoundError:
+                self.send_error(404, 'File not found')
 
         else:
             #Se não for a rota "/login", continua com o comportamento padrão
@@ -132,8 +158,31 @@ class MyHandler(SimpleHTTPRequestHandler):
             file.writelines(lines[:-1])
 
     def do_POST(self):
+
+        if self.path == '/cad_turma':
+            content_length = int(self.headers['Content-Length'])
+            body = self.rfile.read(content_length).decode('utf-8')
+            form_data = parse_qs(body, keep_blank_values=True)
+
+            turma = form_data.get('turma', [''])[0]
+            descricao = form_data.get('descricao', [''])[0]
+            
+            if self.turma_existente(turma, descricao):
+                self.send_response(302)
+                self.send_header("Content-type", "text/html; charset=utf-8")
+                self.end_headers()
+                self.wfile.write("Já temos essa turma cadastrada!!".encode('utf-8'))
+            else:
+                self.adicionar_turma(turma, descricao)
+                self.send_response(302)
+                self.send_header("Content-type", "text/html; charset=utf-8")
+                self.end_headers()
+                self.wfile.write("Registro Novo!!".encode('utf-8'))
+                return
+            super().do_POST()
+
         #verifica se a rota é "/enviar_login" (isso tem que estar no action do formulario )
-        if self.path == '/enviar_login':
+        elif self.path == '/enviar_login':
             #Obtém o comprimento do corpo da requisição
             content_length = int(self.headers['Content-Length'])
 
@@ -154,7 +203,7 @@ class MyHandler(SimpleHTTPRequestHandler):
 
             if self.usuario_existente(login, senha):
                 #Responde ao cliente indicando que usuário já consta nos registros
-                with open(os.path.join(os.getcwd(), 'sucesso.html'), 'r', encoding='utf-8') as usuario_existente_file:
+                with open(os.path.join(os.getcwd(), 'turma.html'), 'r', encoding='utf-8') as usuario_existente_file:
                     content = usuario_existente_file.read() # le o contedo do arquivo login 
 
                 self.send_response(200)
@@ -226,7 +275,11 @@ class MyHandler(SimpleHTTPRequestHandler):
                         file.write(line)
                         
                         self.send_response(302)
-                        self.send_header('Location', '/')
+                        self.send_header('Location', '/cad_turma')
+
+                        # self.send_header('Content-type', 'text/html; charset=utf-8')    
+                        # with open(os.path.join(os.getcwd(), 'sucesso.html'), 'r', encoding='utf-8') as usuario_existente_file:
+                        #     content = usuario_existente_file.read() # le o contedo do arquivo login 
                         self.end_headers()
                     
                     else:

@@ -1,0 +1,2 @@
+<_io.TextIOWrapper name='cad_turma.txt' mode='a' encoding='UTF-8'>;
+<_io.TextIOWrapper name='cad_turma.txt' mode='a' encoding='UTF-8'>;digital solutions
