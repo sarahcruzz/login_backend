@@ -159,6 +159,7 @@
             <div class="nav-bar">
 
                 <h1>Bem vindo(a) professor, cadastre sua turma!</h1>
+                <h3>{nome_professor}</h3>
                 <button>SAIR</button>
 
             </div>
@@ -169,13 +170,25 @@
         <div class="form-turma">
             <div class="turmas">
                 <form action="/cadastrar_turma" method="post">
+
                     <h1>Cadastre a Turma</h1>
+
                     <label for="">Código da Turma</label>
                     <input type="text" name="codigo-turma">
+
                     <label for="descrition">Descrição</label>
                     <input type="text" name="descricao">
-                    <button id="enviar">Cadastrar</button>
+
+                    <input type="hidden" id="id_professor" name="id_professor" value="{id_professor}">
+                    <input type="hidden" id="login" name="login" value="{login}">
+
+                    <button type="submit" id="enviar">Cadastrar</button>
                 </form>
+
+                <table>
+                    <!-- Tabela com linhas zebradas -->
+                </table>
+            
             </div>
 
             <div class="error-message">

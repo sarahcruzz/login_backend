@@ -184,7 +184,59 @@ class MyHandler(SimpleHTTPRequestHandler):
         with open (arquivo, 'w', encoding='utf-8') as file:
             file.writelines(lines[:-1])
  
-   
+    def adicionar_turma_professor(self, descTurma, id_professor):
+        cursor = conexao.cursor()
+        cursor.execute("INSERT INTO turmas (descricao) VALUES (%s)", (descTurma,))
+        cursor.execute("SELECT id_turma FROM turmas WHERE descricao = %s", (descTurma,))
+        resultado = cursor.fetchone()
+        cursor.execute("INSERT INTO turmas_professor (id_turma, id_professor) VALUES (%s, %s)", (resultado[0], id_professor))
+        conexao.commit()
+        cursor.close()
+
+    def carrega_turmas_professor(self, login):
+        # carrega turmas do professor
+        cursor = conexao.cursor()
+        cursor.execute("SELECT id_professor, nome FROM dados_login WHERE login = %s", (login,))
+        resultado = cursor.fetchone()
+        cursor.close()
+
+        # resultado[0] trás o id_professor e resultado [1] trás o nome do professor
+        id_professor = resultado[0]
+        
+        #código para obter turmas do professor
+        cursor = conexao.cursor()
+        cursor.execute(
+            "SELECT turmas.id_turma, turmas.descricao FROM turmas_professor INNER JOIN turmas"
+            "ON turmas_professor.id_turma = turmas.id_turma WHERE turmas_professor.id_professor = %s", (id_professor,))
+        turmas = cursor.fetchall()
+        cursor.close()
+
+        # construindo dinamicamente as linhas da tabela com as turmas do professor
+        linhas_tabela = ""
+        for turma in turmas:
+            id_turma = turma[0]
+            descricao_turma = turma[1]
+            link_atividade = "<img src='icnatividade2.png'/>"
+            linha = "<tr> <td style='text-align:center'>{}</td> <td style='text-align:center'>{}</td> </tr>".format(descricao_turma, link_atividade)
+            linhas_tabela += linha
+
+        with open(os.path.join(os.getcwd(), 'cadastro_turma.html'), 'r', encoding='utf-8') as cad_turma_file:
+            content = cad_turma_file.read()
+
+            content = content.replace('{nome_professor}', resultado[1])
+            content = content.replace('{id_professor}', str(id_professor))
+            content = content.replace('{login}', str(login))
+
+        # Substituindo o marcador de posição pelas linhas da tabela
+        content = content.replace('<!-- Tabela com linhas zebradas -->', linhas_tabela)
+        self.send_response(200)
+        self.send_header("Content-type", "text/html; charset=utf-8")
+        self.end_headers()
+
+        self.wfile.write(content.encode('utf-8'))
+
+
+
     def do_POST(self):
         #verifica se a rota é "/enviar_login" (isso tem que estar no action do formulario )
         if self.path == '/enviar_login':
@@ -202,21 +254,15 @@ class MyHandler(SimpleHTTPRequestHandler):
             senha = form_data.get('senha',[''])[0]
  
             if self.usuario_existente(login, senha):
- 
-                # with open(os.path.join(os.getcwd(), 'page_professor.html'), 'r', encoding='utf-8') as page_professor_file:
-                #     content = page_professor_file.read() # le o contedo do arquivo login
- 
-                self.send_response(200)
-                self.send_header("Content-type", "text/html; charset=utf-8")
-                self.end_headers()
-                self.wfile.write(content.encode('utf-8'))
+                self.carrega_turmas_professor(login)
  
             else:
                 cursor = conexao.cursor()
                 cursor.execute("SELECT login FROM dados_login WHERE login = %s",(login,))
                 resultado = cursor.fetchone()
-                print("bruna: " ,resultado)
+                print("Sarah: " , resultado)
                 #if any(line.startswith(f'{login};') for line in open('dados.login.txt', 'r', encoding='utf-8')):
+
                 if resultado:
                     self.send_response(302)
                     self.send_header('Location', '/login_failed')
@@ -252,23 +298,17 @@ class MyHandler(SimpleHTTPRequestHandler):
            
         elif self.path.startswith('/cadastrar_turma'):
             content_length =  int(self.headers['content-length'])
- 
             body= self.rfile.read(content_length).decode('utf-8')
- 
-            from_data = parse_qs(body, keep_blank_values=True)
- 
-            cod_turma = from_data.get('codigo-turma', [''])[0]
-            descricao = from_data.get('descricao', [''])[0]
+            form_data = parse_qs(body, keep_blank_values=True)
+            descTurma = form_data.get('descturma', [''])[0]
+            id_professor = form_data.get('id_professor', [''])[0]
+            login = form_data.get('login', [''])[0]
+
+            print(f"Cad_turma, dados do formulário {descTurma}{id_professor}")
+            self.adicionar_turma_professor(descTurma, id_professor)
+            self.carrega_turmas_professor(login)
  
             if cod_turma.strip()== '' or descricao.strip() == '':
-               
-                # self.send_response(302)
-                # self.send_header('Location', '/cadastro_turma_failed')
-                # self.end_headers()
-                # self.send_response(302)
-                # self.send_header("Content-type", "text/html; charset=utf-8")
-                # self.end_headers()
-                # self.wfile.write("Os campos não foram preenchidos corretamente, tente novamente.".encode('utf-8'))
                 mensagem_erro = "Os campos não foram preenchidos corretamente, tente novamente."
                 self.send_response(200)
                 self.send_header("Content-type", "text/html; charset=utf-8")
